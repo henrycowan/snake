@@ -4,120 +4,132 @@ import time
 import snake_body
 import sys
 
-def generate_food_pos():
-    food_x = np.random.randint(0,50)*10
-    food_y = np.random.randint(0,50)*10
-    return food_x, food_y
 
 
-def add_score(score):
-    font = pygame.font.SysFont(None,25)
-    text = font.render("Score = " + str(score - 1), True, (255,255,255))
-    window.blit(text,(0,0))
-    pygame.display.flip()
+class Snake:
 
+    def __init__(self):
 
-def place_food(food_x, food_y):
-    pygame.draw.rect(window, (255, 255, 255), (food_x, food_y, 10, 10), width=5, border_radius=10)
+        #/ Setting Constants/
 
+        self.x = 500
+        self.y = 500
+        self.x_pos = self.x/2
+        self.y_pos = self.y/2
+        self.snake_pos_i = (self.x_pos, self.y_pos)
+        self.snake_inst = snake_body.SnakeBody(self.snake_pos_i)
+        self.persist_food = True
+        self.run = True
+        self.food_x, self.food_y = 0, 0
+        self.direction = 1
+        self.prev_direction = self.direction
+        self.delay = 0.1
 
-x = 500
-y = 500
-x_pos = x/2
-y_pos = y/2
-snake_pos_i = (x_pos, y_pos)
-snake_inst = snake_body.SnakeBody(snake_pos_i)
+        #/ Start Pygame lib/
+        pygame.init()
 
-pygame.init()
+        #/create window/
+        self.window = pygame.display.set_mode((self.x, self.y))
 
-window = pygame.display.set_mode((x, y))
+        #/create inital food coords and put on screen/
+        self.generate_food_pos()
+        self.place_food()
 
-run = True
+    #/generate random x,y coord for food placement/
+    def generate_food_pos(self):
+        self.food_x = np.random.randint(0, 50) * 10
+        self.food_y = np.random.randint(0, 50) * 10
 
-f_x, f_y = generate_food_pos()
-place_food(f_x,f_y)
-persist_food = True
+    #/add score to the screen/
+    def add_score(self, score):
+        font = pygame.font.SysFont(None, 25)
+        text = font.render("Score = " + str(score - 1), True, (255, 255, 255))
+        self.window.blit(text, (0, 0))
+        pygame.display.flip()
 
-direction = 1
-prev_direction = direction
+    #/draw the food on the screen/
+    def place_food(self):
+        pygame.draw.rect(self.window, (255, 255, 255), (self.food_x, self.food_y, 10, 10), width=5, border_radius=10)
 
-f_x, f_y = generate_food_pos()
-while run:
+    def check_key_press(self):
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w:
-                if prev_direction == 2:
-                    direction = 2
-                else: direction = 1
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w:
+                    if self.prev_direction == 2:
+                        self.direction = 2
+                    else:
+                        self.direction = 1
 
-                prev_direction = direction
+                    self.prev_direction = self.direction
 
-            if event.key == pygame.K_s:
-                if prev_direction == 2:
-                    direction = 1
-                else: direction = 2
+                if event.key == pygame.K_s:
+                    if self.prev_direction == 2:
+                        self.direction = 1
+                    else:
+                        self.direction = 2
 
-                prev_direction = direction
+                    self.prev_direction = self.direction
 
-            if event.key == pygame.K_a:
-                if prev_direction == 4:
-                    direction = 4
-                else: direction = 3
+                if event.key == pygame.K_a:
+                    if self.prev_direction == 4:
+                        self.direction = 4
+                    else:
+                        self.direction = 3
 
-                prev_direction = direction
+                    self.prev_direction = self.direction
 
-            if event.key == pygame.K_d:
-                if prev_direction == 3:
-                    direction = 3
+                if event.key == pygame.K_d:
+                    if self.prev_direction == 3:
+                        self.direction = 3
 
-                else:direction = 4
-                prev_direction = direction
+                    else:
+                        self.direction = 4
+                    self.prev_direction = self.direction
 
-    if direction == 1:
-        y_pos -= 10
-    if direction == 2:
-        y_pos += 10
-    if direction == 3:
-        x_pos -= 10
-    if direction == 4:
-        x_pos += 10
+    def increment_position(self):
+        if self.direction == 1:
+            self.y_pos -= 10
+        if self.direction == 2:
+            self.y_pos += 10
+        if self.direction == 3:
+            self.x_pos -= 10
+        if self.direction == 4:
+            self.x_pos += 10
 
-    snake_inst.update_snake([x_pos, y_pos])
+    def add_new_food(self):
+        if self.persist_food:
+            self.place_food()
+        else:
+            self.generate_food_pos()
+            self.place_food()
+            self.persist_food = True
 
-    window.fill(0)
+    def draw_snake(self):
+        for m in range(len(self.snake_inst.snake_to_plot)):
+                pygame.draw.rect(self.window, (255, 0, 0), (self.snake_inst.snake_to_plot[m][0], self.snake_inst.snake_to_plot[m][1], 10, 10), width=50, border_radius=1)
 
-    place_food(f_x, f_y)
-
-    if persist_food:
-        place_food(f_x, f_y)
-    else:
-        f_x, f_y = generate_food_pos()
-        place_food(f_x, f_y)
-        persist_food = True
-
-    for m in range(len(snake_inst.snake_to_plot)):
-        pygame.draw.rect(window, (255, 0, 0), (snake_inst.snake_to_plot[m][0], snake_inst.snake_to_plot[m][1], 10, 10), width=50, border_radius=1)
-
-    if snake_inst.fail_condition:
+    def run_fail_blink(self):
 
         for i in range(6):
 
-            for m in range(len(snake_inst.snake_to_plot)):
-                pygame.draw.rect(window, (255, 0, 255),
-                                 (snake_inst.snake_to_plot[m][0], snake_inst.snake_to_plot[m][1], 10, 10), width=50,
+            for m in range(len(self.snake_inst.snake_to_plot)):
+                pygame.draw.rect(self.window, (255, 0, 255),
+                                 (self.snake_inst.snake_to_plot[m][0], self.snake_inst.snake_to_plot[m][1], 10, 10),
+                                 width=50,
                                  border_radius=1)
             pygame.display.update()
 
             time.sleep(0.1)
 
-            for m in range(len(snake_inst.snake_to_plot)):
-                pygame.draw.rect(window, (255, 255, 0),
-                                 (snake_inst.snake_to_plot[m][0], snake_inst.snake_to_plot[m][1], 10, 10), width=50,
+            for m in range(len(self.snake_inst.snake_to_plot)):
+                pygame.draw.rect(self.window, (255, 255, 0),
+                                 (self.snake_inst.snake_to_plot[m][0], self.snake_inst.snake_to_plot[m][1], 10, 10),
+                                 width=50,
                                  border_radius=1)
             pygame.display.update()
 
@@ -125,27 +137,63 @@ while run:
 
         pygame.quit()
 
-    time.sleep(0.2-(0.005*snake_inst.food_aquired))
+    def snake_wraparound(self):
 
-    if x_pos < 0:
-        x_pos = x
+        if self.x_pos < 0:
+            self.x_pos = self.x
 
-    if x_pos > x:
-        x_pos = -10
+        if self.x_pos > self.x:
+            self.x_pos = -10
 
-    if y_pos < 0:
-        y_pos = y
+        if self.y_pos < 0:
+            self.y_pos = self.y
 
-    if y_pos > y:
-        y_pos = -10
+        if self.y_pos > self.y:
+            self.y_pos = -10
 
-    if x_pos == f_x and y_pos == f_y:
-        persist_food = False
-        snake_inst.food_aquired += 1
+    def check_if_eaten(self):
 
-    add_score(snake_inst.food_aquired)
+        if self.x_pos == self.food_x and self.y_pos == self.food_y:
+            self.persist_food = False
+            self.snake_inst.food_aquired += 1
 
-pygame.quit()
+    def increment_delay(self):
+        self.delay = self.delay - (0.005 * self.snake_inst.food_aquired)
 
-exit()
+    #/run the game/
+    def main(self):
+        while self.run:
 
+            self.check_key_press()
+
+            self.increment_position()
+
+            self.snake_inst.update_snake([self.x_pos, self.y_pos])
+
+            self.window.fill(0)
+
+            self.place_food()
+
+            self.add_new_food()
+
+            self.draw_snake()
+
+            if self.snake_inst.fail_condition:
+
+                self.run_fail_blink()
+
+            self.snake_wraparound()
+
+            time.sleep(self.delay)
+
+            if self.check_if_eaten():
+                self.increment_delay()
+
+            self.add_score(self.snake_inst.food_aquired)
+
+        pygame.quit()
+
+        sys.exit()
+
+game = Snake()
+game.main()

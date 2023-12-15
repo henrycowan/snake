@@ -4,13 +4,14 @@ class SnakeBody:
 
     def __init__(self, pos_i):
         self.body_length = 1
-        self.body_pos =[(0,0)]
+        self.body_pos = [(0,0)]
         self.pos_i = pos_i
-        self.snake_to_plot=[]
+        self.snake_to_plot = []
         self.food_aquired = 1
         self.fail_condition = False
         self.update_snake(pos_i)
         self.delete_snake_pos = []
+
     def add_position(self, new_position_value):
         self.body_pos[self.body_length-1] = new_position_value
 
